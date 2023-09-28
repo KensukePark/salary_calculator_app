@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shift_calendar/screens/home_page.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:shift_calendar/screens/loading_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         fontFamily: 'title',
       ),
-      home: const HomePage(),
+      home: LoadingPage(),
     );
   }
 }
