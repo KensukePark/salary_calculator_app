@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
@@ -280,7 +279,6 @@ class _HomePageState extends State<HomePage> {
                               String utc_day = day.toString();
                               utc_day.length == 1 ? utc_day = '0' + utc_day : null;
                               String utc_temp = utc_year+utc_month+utc_day;
-                              String utc_idx = utc_year+utc_month;
                               temp_events.remove(utc_temp);
                               String encode_event = json.encode(temp_events);
                               prefs.setString('events', encode_event);
@@ -317,7 +315,6 @@ class _HomePageState extends State<HomePage> {
   List<dynamic> _getEventsForDay(DateTime day) {
     return events[day] ?? [];
   }
-  int _add_idx = 0;
   int _currentIndex = 0;
   late num num_large;
   late num num_small;
@@ -593,9 +590,8 @@ class _HomePageState extends State<HomePage> {
         onTap: (int index){
           setState(() {
             _currentIndex = index;
-            if(index == 0){
-            }
-            if(index == 1){
+            if(index == 0) null;
+            if(index == 1) {
               Navigator.pushAndRemoveUntil(context, MaterialPageRoute (builder: (BuildContext context) => StaticPage(events: events, static_list: statics_list)), (route) => false);
             }
           });

@@ -121,9 +121,7 @@ class _StaticPageState extends State<StaticPage> {
             if(index == 0){
               Navigator.pushAndRemoveUntil(context, MaterialPageRoute (builder: (BuildContext context) => HomePage(get_events: widget.events, get_stats: widget.static_list)), (route) => false);
             }
-            if(index == 1){
-
-            }
+            if(index == 1) null;
           });
         },
       ),
