@@ -3,7 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:shift_calendar/screens/home_page.dart';
 
 class StaticPage extends StatefulWidget {
-  const StaticPage({Key? key, required this.static_list}) : super(key: key);
+  const StaticPage({Key? key, required this.events, required this.static_list}) : super(key: key);
+  final events;
   final static_list;
   @override
   State<StaticPage> createState() => _StaticPageState();
@@ -20,81 +21,87 @@ class _StaticPageState extends State<StaticPage> {
         automaticallyImplyLeading: false,
         backgroundColor: Color(0xffFEFAF8),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            fit: BoxFit.cover,
-            image: AssetImage('assets/images/chunsik_bg_3.jpg'), // 배경 이미지
-            colorFilter: ColorFilter.mode(
-                Colors.black.withOpacity(0.3), BlendMode.dstATop),
-          ),
-        ),
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView.separated(
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: widget.static_list.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return Container(
-                    padding: EdgeInsets.all(10),
-                    child: Container(
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: Colors.transparent,
-                          border: Border.all(
-                            color: Colors.grey,
-                            width: 1,
-                          )
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.static_list[index][0].toString().substring(0,4) + '년 ' + widget.static_list[index][0].toString().substring(5) + '월',
-                            style: TextStyle(
-                              fontSize: 20,
-                            ),
-                          ),
-                          SizedBox(height: 10,),
-                          Text(
-                            '출근일 : ' + f.format(widget.static_list[index][1])+ '日',
-                            style: TextStyle(
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            '월급 : ' + f.format(widget.static_list[index][2])+ '円',
-                            style: TextStyle(
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            '교통비 : ' + f.format(widget.static_list[index][1]*776)+ '円',
-                            style: TextStyle(
-                              fontSize: 16,
-                            ),
-                          ),
-                          SizedBox(height: 10,),
-                          Text(
-                            '합계 : ' + f.format(widget.static_list[index][2] + widget.static_list[index][1]*776)+ '円',
-                            style: TextStyle(
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-                separatorBuilder: (BuildContext context, int index) =>
-                    SizedBox(),
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                fit: BoxFit.cover,
+                image: AssetImage('assets/images/chunsik_bg_3.jpg'), // 배경 이미지
+                colorFilter: ColorFilter.mode(
+                    Colors.black.withOpacity(0.3), BlendMode.dstATop),
               ),
             ),
-          ],
-        ),
+          ),
+          SingleChildScrollView(
+            child: Container(
+              child: Column(
+                children: [
+                  ListView.separated(
+                    physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemCount: widget.static_list.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Container(
+                        padding: EdgeInsets.all(10),
+                        child: Container(
+                          padding: EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: Colors.transparent,
+                              border: Border.all(
+                                color: Colors.grey,
+                                width: 1,
+                              )
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.static_list[index][0].toString().substring(0,4) + '년 ' + widget.static_list[index][0].toString().substring(5) + '월',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                ),
+                              ),
+                              SizedBox(height: 10,),
+                              Text(
+                                '출근일 : ' + f.format(widget.static_list[index][1])+ '日',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                              Text(
+                                '월급 : ' + f.format(widget.static_list[index][2])+ '円',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                              Text(
+                                '교통비 : ' + f.format(widget.static_list[index][1]*776)+ '円',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                              SizedBox(height: 10,),
+                              Text(
+                                '합계 : ' + f.format(widget.static_list[index][2] + widget.static_list[index][1]*776)+ '円',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                    separatorBuilder: (BuildContext context, int index) =>
+                        SizedBox(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Color(0xffFEFAF8),
@@ -112,7 +119,7 @@ class _StaticPageState extends State<StaticPage> {
           setState(() {
             _currentIndex = index;
             if(index == 0){
-              Navigator.push(context, MaterialPageRoute (builder: (BuildContext context) => HomePage()));
+              Navigator.pushAndRemoveUntil(context, MaterialPageRoute (builder: (BuildContext context) => HomePage(get_events: widget.events, get_stats: widget.static_list)), (route) => false);
             }
             if(index == 1){
 
