@@ -1,30 +1,81 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shift_calendar/screens/loading_page.dart';
 import 'package:shift_calendar/screens/static_page.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({Key? key, required this.get_events, required this.get_stats}) : super(key: key);
+  final get_events;
+  final get_stats;
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  void sort_list() {
-    int len_list = statics_list.length;
-    for (int i=0; i<len_list-1; i++) {
-      for (int j=i+1; j<len_list-1; j++) {
-        if (statics_list[i][0] < statics_list[j][0]) {
-          var save_temp = statics_list[i];
-          statics_list[i] = statics_list[j];
-          statics_list[j] = save_temp;
-        }
-      }
-    }
-  }
+  List<bool> _boolean = [false, false];
+  bool exist_check = false;
+  ///일급 추가 버튼 동작 함수
+  ///일급 계산 방식을 고르게 함
   void add_dialog() {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            backgroundColor: Color(0xffFEFAF8),
+            child: Container(
+                width: 150,
+                height: 150,
+                padding: EdgeInsets.all(15),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '방 개수 계산 / 일한 시간 계산',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ToggleButtons(
+                          children: <Widget>[
+                            Icon(Icons.bedroom_child_outlined, size: 64,),
+                            Icon(Icons.more_time_rounded, size: 64,),
+                          ],
+                          onPressed: (int index) {
+                            if (index == 0) {
+                              Navigator.pop(context);
+                              add_by_room();
+                            }
+                            else {
+                              Navigator.pop(context);
+                              add_by_time();
+                            }
+                          },
+                          isSelected: _boolean,
+                        ),
+                      ],
+                    ),
+                  ],
+                )),
+          );
+        }
+    );
+  }
+
+  ///방 숫자로 급여를 추가하는 함수
+  void add_by_room() {
+    num room_one = 0;
+    num room_two = 0;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -33,90 +84,34 @@ class _HomePageState extends State<HomePage> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
+          backgroundColor: Color(0xffFEFAF8),
           child: Container(
               width: 150,
-              height: 300,
+              height: 250,
               padding: EdgeInsets.all(15),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    '아르바이트 기록 추가',
+                    '방 기록 추가',
                     style: TextStyle(fontSize: 20),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Radio(
-                              value: 0,
-                              groupValue: _add_idx,
-                              onChanged: (value) {
-                                setState(() {
-                                  _add_idx = 0;
-                                });
-                              },
-                            ),
-                            Expanded(
-                              child: Text('방 계산'),
-                            )
-                          ],
-                        ),
-                        flex: 1,
-                      ),
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Radio(
-                              value: 1,
-                              groupValue: _add_idx,
-                              onChanged: (value) {
-                                setState(() {
-                                  _add_idx = 1;
-                                });
-                              },
-                            ),
-                            Expanded(
-                              child: Text('시간 계산'),
-                            )
-                          ],
-                        ),
-                        flex: 1,
-                      )
-                    ],
-                  ),
-                  _add_idx == 0 ?
-                    Column(
-                      children: [
-                        TextFormField(
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            hintText: '풀 청소 방 개수',
-                          ),
-                        ),
-                        TextFormField(
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            hintText: '간단 청소 방 개수',
-                          ),
-                        ),
-                      ],
-                    ) :
                   TextFormField(
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
+                    onChanged: (value) {
+                      room_one = num.parse(value);
+                    },
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                      hintText: '일한 시간',
+                      hintText: '풀 청소 방 개수',
+                    ),
+                  ),
+                  TextFormField(
+                    onChanged: (value2) {
+                      room_two = num.parse(value2);
+                    },
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      hintText: '간단 청소 방 개수',
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -125,11 +120,23 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       SizedBox(
                         child: ElevatedButton(
-                          onPressed: () {
-                            /// Navigator.pop에서 result값을 넣어주면
-                            /// showDialog의 return 값이 됩니다.
-                            /// return value
-                            Navigator.pop(context);
+                          onPressed: () async {
+                            var prefs = await SharedPreferences.getInstance();
+                            String? decode_event = prefs.getString('events');
+                            Map<String, dynamic> temp_events = json.decode(decode_event!);
+                            String utc_year = year.toString();
+                            String utc_month = month.toString();
+                            utc_month.length == 1 ? utc_month = '0' + utc_month : null;
+                            String utc_day = day.toString();
+                            utc_day.length == 1 ? utc_day = '0' + utc_day : null;
+
+                            String utc_temp = utc_year+utc_month+utc_day;
+                            String utc_idx = utc_year+utc_month;
+
+                            temp_events[utc_temp] = [room_one, room_two, 0, num.parse(utc_idx)];
+                            String encode_event = json.encode(temp_events);
+                            prefs.setString('events', encode_event);
+                            Navigator.pushAndRemoveUntil(context, MaterialPageRoute (builder: (BuildContext context) => LoadingPage()), (route) => false);
                           },
                           child: const Text("추가"),
                           style: ElevatedButton.styleFrom(
@@ -140,9 +147,6 @@ class _HomePageState extends State<HomePage> {
                       SizedBox(
                         child: ElevatedButton(
                           onPressed: () {
-                            /// Navigator.pop에서 result값을 넣어주면
-                            /// showDialog의 return 값이 됩니다.
-                            /// return value
                             Navigator.pop(context);
                           },
                           child: const Text("취소"),
@@ -157,77 +161,167 @@ class _HomePageState extends State<HomePage> {
               )),
         );
       }
-    ).then((value) {
+    );
+  }
+  ///일한 시간으로 급여를 추가하는 함수
+  void add_by_time() {
+    num work_time = 0;
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Container(
+                width: 150,
+                height: 200,
+                padding: EdgeInsets.all(15),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '시간 기록 추가',
+                      style: TextStyle(fontSize: 20),
+                    ),
+                    TextFormField(
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        hintText: '일한 시간',
+                      ),
+                      onChanged: (value3) {
+                        work_time = num.parse(value3);
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        SizedBox(
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              var prefs = await SharedPreferences.getInstance();
+                              String? decode_event = prefs.getString('events');
+                              Map<String, dynamic> temp_events = json.decode(decode_event!);
+                              String utc_year = year.toString();
+                              String utc_month = month.toString();
+                              utc_month.length == 1 ? utc_month = '0' + utc_month : null;
+                              String utc_day = day.toString();
+                              utc_day.length == 1 ? utc_day = '0' + utc_day : null;
 
-    }).whenComplete(() {
-      null;
-    });
+                              String utc_temp = utc_year+utc_month+utc_day;
+                              String utc_idx = utc_year+utc_month;
+
+                              temp_events[utc_temp] = [0, 0, work_time, num.parse(utc_idx)];
+                              String encode_event = json.encode(temp_events);
+                              prefs.setString('events', encode_event);
+                              Navigator.pushAndRemoveUntil(context, MaterialPageRoute (builder: (BuildContext context) => LoadingPage()), (route) => false);
+                            },
+                            child: const Text("추가"),
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: Size(100,40),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: const Text("취소"),
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: const Size(100,40),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                )),
+          );
+        }
+    );
+  }
+  ///일한 내역을 지우는 함수
+  void delete_work() {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Container(
+                width: 150,
+                height: 200,
+                padding: EdgeInsets.all(15),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '진짜 지울꺼야?',
+                      style: TextStyle(fontSize: 20),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        SizedBox(
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              var prefs = await SharedPreferences.getInstance();
+                              String? decode_event = prefs.getString('events');
+                              Map<String, dynamic> temp_events = json.decode(decode_event!);
+                              String utc_year = year.toString();
+                              String utc_month = month.toString();
+                              utc_month.length == 1 ? utc_month = '0' + utc_month : null;
+                              String utc_day = day.toString();
+                              utc_day.length == 1 ? utc_day = '0' + utc_day : null;
+                              String utc_temp = utc_year+utc_month+utc_day;
+                              String utc_idx = utc_year+utc_month;
+                              temp_events.remove(utc_temp);
+                              String encode_event = json.encode(temp_events);
+                              prefs.setString('events', encode_event);
+                              Navigator.pushAndRemoveUntil(context, MaterialPageRoute (builder: (BuildContext context) => LoadingPage()), (route) => false);
+                            },
+                            child: const Text("지우기"),
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: Size(100,40),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: const Text("취소"),
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: const Size(100,40),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                )),
+          );
+        }
+    );
   }
   var f = NumberFormat('###,###,###,###');
-  Map<DateTime, List<double>> events = {
-    DateTime.utc(2023,6,20) : [ 0, 0, 4950],
-    DateTime.utc(2023,6,21) : [ 0, 0, 4950],
-    DateTime.utc(2023,6,22) : [ 0, 0, 4950 ],
-    DateTime.utc(2023,6,28) : [ 0, 0, 4950 ],
-    DateTime.utc(2023,6,29) : [ 0, 0, 4950 ],
-    DateTime.utc(2023,6,30) : [ 0, 0, 6600 ],
-    DateTime.utc(2023,7,1) : [ 0, 0, 5500],
-    DateTime.utc(2023,7,2) : [ 0, 0, 9900],
-    DateTime.utc(2023,7,4) : [ 0, 0, 3300],
-    DateTime.utc(2023,7,5) : [ 0, 0, 4950],
-    DateTime.utc(2023,7,8) : [ 0, 0, 9900],
-    DateTime.utc(2023,7,9) : [ 17, 2, 0],
-    DateTime.utc(2023,7,11) : [ 2, 19, 0],
-    DateTime.utc(2023,7,13) : [ 0, 0, 10450],
-    DateTime.utc(2023,7,15) : [ 11, 6, 0],
-    DateTime.utc(2023,7,16) : [ 13, 4, 0],
-    DateTime.utc(2023,7,18) : [ 15, 5, 0],
-    DateTime.utc(2023,7,19) : [ 16, 0, 0],
-    DateTime.utc(2023,7,21) : [ 10, 3, 0],
-    DateTime.utc(2023,7,23) : [ 16, 0, 0],
-    DateTime.utc(2023,7,24) : [ 15, 0, 0],
-    DateTime.utc(2023,7,27) : [ 18, 1, 0],
-    DateTime.utc(2023,8,3) : [ 10, 0, 0 ],
-    DateTime.utc(2023,8,5) : [ 15, 3, 0 ],
-    DateTime.utc(2023,8,6) : [ 17, 2, 0 ],
-    DateTime.utc(2023,8,8) : [ 15, 5, 0 ],
-    DateTime.utc(2023,8,9) : [ 11, 0, 0 ],
-    DateTime.utc(2023,8,10) : [ 6, 6, 0 ],
-    DateTime.utc(2023,8,11) : [ 13, 1, 0 ],
-    DateTime.utc(2023,8,13) : [ 16, 5, 0 ],
-    DateTime.utc(2023,8,14) : [ 21.5, 8, 0 ],
-    DateTime.utc(2023,8,16) : [ 20, 1, 0 ],
-    DateTime.utc(2023,8,17) : [ 13, 3, 0 ],
-    DateTime.utc(2023,8,19) : [ 12, 3, 0 ],
-    DateTime.utc(2023,8,21) : [ 9, 9 , 0],
-    DateTime.utc(2023,8,22) : [ 12, 12, 0 ],
-    DateTime.utc(2023,8,25) : [ 11, 6, 0 ],
-    DateTime.utc(2023,8,27) : [ 18, 1, 0 ],
-    DateTime.utc(2023,8,28) : [ 10, 2, 0 ],
-    DateTime.utc(2023,8,31) : [ 13.5, 5, 0 ],
-    DateTime.utc(2023,9,2) : [ 5, 2, 0 ],
-    DateTime.utc(2023,9,3) : [ 16, 3, 0 ],
-    DateTime.utc(2023,9,6) : [ 10, 10, 0 ],
-    DateTime.utc(2023,9,7) : [ 14, 13, 0 ],
-    DateTime.utc(2023,9,8) : [ 14, 14, 0 ],
-    DateTime.utc(2023,9,10) : [ 17, 3, 0 ],
-    DateTime.utc(2023,9,11) : [ 15, 6, 0 ],
-    DateTime.utc(2023,9,13) : [ 8, 13, 0 ],
-    DateTime.utc(2023,9,15) : [ 10, 19, 0 ],
-    DateTime.utc(2023,9,16) : [ 28, 7, 0 ],
-    DateTime.utc(2023,9,17) : [ 14, 2, 0 ],
-    DateTime.utc(2023,9,26) : [ 14, 5, 0 ],
-    DateTime.utc(2023,9,27) : [ 18, 0, 0 ],
-    //DateTime.utc(2023,9,28) : [ 5, 2, 0],
-  };
-  List<double> _getEventsForDay(DateTime day) {
+  Map<DateTime, List<dynamic>> events = {};
+  List<List<num>> statics_list = [];
+  List<dynamic> _getEventsForDay(DateTime day) {
     return events[day] ?? [];
   }
   int _add_idx = 0;
   int _currentIndex = 0;
-  late double num_large;
-  late double num_small;
-  late double money;
+  late num num_large;
+  late num num_small;
+  late num money;
   DateTime selectedDay = DateTime(
     DateTime.now().year,
     DateTime.now().month,
@@ -235,17 +329,29 @@ class _HomePageState extends State<HomePage> {
   );
   bool check_select = false;
   DateTime focusedDay = DateTime.now();
-  List<List<int>> statics_list = [[202309, 13, 134470], [202308,18,169470]];
-  Map<String, List<int>> statics = {
-    '202308' : [18, 169470],
-    '202309' : [13, 134470]
-  };
   late int year;
   late int month;
   late int day;
+
+  ///매달 기록을 정렬하는 함수
+  ///0번째 원소를 기준으로 내림차순 정렬
+  void sort_list() {
+    int len_list = statics_list.length;
+    for (int i=0; i<len_list; i++) {
+      for (int j=i+1; j<len_list; j++) {
+        if (statics_list[i][0] < statics_list[j][0]) {
+          var save_temp = statics_list[i];
+          statics_list[i] = statics_list[j];
+          statics_list[j] = save_temp;
+        }
+      }
+    }
+  }
   @override
   void initState() {
-    super.initState();
+    events = widget.get_events;
+    statics_list = widget.get_stats;
+    sort_list();
     year = int.parse(selectedDay.toString().substring(0,4));
     month = int.parse(selectedDay.toString().substring(5,7));
     day = int.parse(selectedDay.toString().substring(8,10));
@@ -257,12 +363,15 @@ class _HomePageState extends State<HomePage> {
     else {
       num_large = _getEventsForDay(DateTime.utc(year, month, day))[0];
       num_small = _getEventsForDay(DateTime.utc(year, month, day))[1];
-      money = _getEventsForDay(DateTime.utc(year, month, day))[2];
+      money = _getEventsForDay(DateTime.utc(year, month, day))[2]*1100;
+      exist_check = true;
     }
+    super.initState();
   }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Text('달력'),
         automaticallyImplyLeading: false,
@@ -305,18 +414,23 @@ class _HomePageState extends State<HomePage> {
                           check_select = true;
                           this.selectedDay = selectedDay;
                           this.focusedDay = focusedDay;
-                          int year = int.parse(selectedDay.toString().substring(0,4));
-                          int month = int.parse(selectedDay.toString().substring(5,7));
-                          int day = int.parse(selectedDay.toString().substring(8,10));
+                          year = int.parse(selectedDay.toString().substring(0,4));
+                          month = int.parse(selectedDay.toString().substring(5,7));
+                          day = int.parse(selectedDay.toString().substring(8,10));
+                          //print(year);
+                          //print(month);
+                          //print(day);
                           if ( _getEventsForDay(DateTime.utc(year, month, day)).length == 0) {
                             num_large = -65535;
                             num_small = -65535;
                             money = -65535;
+                            exist_check = false;
                           }
                           else {
                             num_large = _getEventsForDay(DateTime.utc(year, month, day))[0];
                             num_small = _getEventsForDay(DateTime.utc(year, month, day))[1];
-                            money = _getEventsForDay(DateTime.utc(year, month, day))[2];
+                            money = _getEventsForDay(DateTime.utc(year, month, day))[2]*1100;
+                            exist_check = true;
                           }
                         });
                       },
@@ -415,7 +529,8 @@ class _HomePageState extends State<HomePage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '일한 시간 : ${(money / 1100).toInt()}시간',
+                            money % 1100 == 0 ? '일한 시간 : ${(money / 1100).toInt()}시간' :
+                            '일한 시간 : ${(money / 1100)}시간',
                             style: TextStyle(
                               fontSize: 18,
                             ),
@@ -443,15 +558,16 @@ class _HomePageState extends State<HomePage> {
                   children: <Widget>[
                     SpeedDial(
                       backgroundColor: const Color.fromRGBO(163, 122, 68, 109),
-                      icon: Icons.add,
+                      icon: Icons.settings,
                       children: [
+                        exist_check == false ?
                         SpeedDialChild(
                           child: Icon(Icons.add),
                           onTap: () => add_dialog(),
-                        ),
+                        ) :
                         SpeedDialChild(
-                          child: Icon(Icons.create_outlined),
-                          onTap: () => null,
+                          child: Icon(Icons.delete),
+                          onTap: () => delete_work(),
                         ),
                       ],
                     ),
@@ -480,7 +596,7 @@ class _HomePageState extends State<HomePage> {
             if(index == 0){
             }
             if(index == 1){
-              Navigator.push(context, MaterialPageRoute (builder: (BuildContext context) => StaticPage(static_list: statics_list)));
+              Navigator.pushAndRemoveUntil(context, MaterialPageRoute (builder: (BuildContext context) => StaticPage(events: events, static_list: statics_list)), (route) => false);
             }
           });
         },
