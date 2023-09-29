@@ -70,6 +70,7 @@ class _LoadingPageState extends State<LoadingPage> {
         '20230917' : [ 14, 2, 0, 202309 ],
         '20230926' : [ 14, 5, 0, 202309 ],
         '20230927' : [ 18, 0, 0, 202309 ],
+        '20230928' : [ 15, 11, 0, 202309 ],
       };
       String encode_event = json.encode(events);
       //print(encode_event);
