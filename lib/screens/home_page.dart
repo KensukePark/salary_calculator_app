@@ -378,7 +378,7 @@ class _HomePageState extends State<HomePage> {
         decoration: BoxDecoration(
           image: DecorationImage(
             fit: BoxFit.cover,
-            image: AssetImage('assets/images/chunsik_bg_3.jpg'), // 배경 이미지
+            image: AssetImage('assets/images/chunsik_bg_4.jpg'), // 배경 이미지
             colorFilter: ColorFilter.mode(
                 Colors.black.withOpacity(0.3), BlendMode.dstATop),
           ),
