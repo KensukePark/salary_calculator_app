@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shift_calendar/screens/home_page.dart';
-
+import 'package:fl_chart/fl_chart.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 class StaticPage extends StatefulWidget {
   const StaticPage({Key? key, required this.events, required this.static_list}) : super(key: key);
   final events;
@@ -11,8 +12,30 @@ class StaticPage extends StatefulWidget {
 }
 
 class _StaticPageState extends State<StaticPage> {
+  List<FlSpot> dummyData1 = [];
   var f = NumberFormat('###,###,###,###');
   int _currentIndex = 1;
+  List<ChartData> data = [];
+  late TooltipBehavior _tooltip;
+
+  @override
+  void initState() {
+    for (int i=0; i<widget.static_list.length; i++) {
+      data.add(
+        ChartData(
+          widget.static_list[widget.static_list.length-1-i][0].toString().substring(0,4) + '년 ' + widget.static_list[widget.static_list.length-1-i][0].toString().substring(5) + '월',
+          widget.static_list[widget.static_list.length-1-i][1].toDouble(),
+          widget.static_list[widget.static_list.length-1-i][2] + widget.static_list[widget.static_list.length-1-i][1]*776.toDouble(),
+        )
+      );
+    }
+    _tooltip = TooltipBehavior(enable: true);
+    dummyData1 = List.generate(widget.static_list.length, (index) {
+      return FlSpot(index.toDouble()+1, widget.static_list[widget.static_list.length-1-index][2] + widget.static_list[widget.static_list.length-1-index][1]*776.toDouble());
+    });
+
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,7 +50,7 @@ class _StaticPageState extends State<StaticPage> {
             decoration: BoxDecoration(
               image: DecorationImage(
                 fit: BoxFit.cover,
-                image: AssetImage('assets/images/chunsik_bg_3.jpg'), // 배경 이미지
+                image: AssetImage('assets/images/chunsik_bg_4.jpg'), // 배경 이미지
                 colorFilter: ColorFilter.mode(
                     Colors.black.withOpacity(0.3), BlendMode.dstATop),
               ),
@@ -37,6 +60,59 @@ class _StaticPageState extends State<StaticPage> {
             child: Container(
               child: Column(
                 children: [
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    height: MediaQuery.of(context).size.height * 0.25,
+                    child: Container(
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: Colors.transparent,
+                          border: Border.all(
+                            color: Colors.grey,
+                            width: 1,
+                          )
+                      ),
+                      child: Stack(
+                        children: [
+                          SfCartesianChart(
+                              primaryXAxis: CategoryAxis(),
+                              primaryYAxis: NumericAxis(
+                                minimum: 0, maximum: 30, interval: 10,isVisible: false,
+                              ),
+                              tooltipBehavior: _tooltip,
+                              series: <ChartSeries<ChartData, String>>[
+                                ColumnSeries<ChartData, String>(
+                                  width: 0.25,
+                                  dataSource: data,
+                                  xValueMapper: (ChartData data, _) => data.x,
+                                  yValueMapper: (ChartData data, _) => data.y,
+                                  name: '출근일(日)',
+                                  color: Color.fromRGBO(8, 142, 255, 1)),
+                              ]
+                          ),
+                          SfCartesianChart(
+                              primaryXAxis: CategoryAxis(),
+                              primaryYAxis: NumericAxis(
+                                minimum: 0, maximum: 250000, interval: 50000 ,isVisible: false,
+                              ),
+                              tooltipBehavior: _tooltip,
+                              series: <ChartSeries<ChartData, String>>[
+                                LineSeries<ChartData, String>(
+                                  markerSettings: MarkerSettings(
+                                    isVisible: true,
+                                  ),
+                                  dataSource: data,
+                                  xValueMapper: (ChartData data, _) => data.x,
+                                  yValueMapper: (ChartData data, _) => data.y1,
+                                  name: '월급(円)',
+                                  color: Color.fromRGBO(255, 142, 140, 1)),
+                              ]
+                          ),
+                        ],
+                      ),
+                    )
+                  ),
                   ListView.separated(
                     physics: const NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
@@ -127,4 +203,12 @@ class _StaticPageState extends State<StaticPage> {
       ),
     );
   }
+}
+
+class ChartData {
+  ChartData(this.x, this.y, this.y1);
+
+  final String x;
+  final double y;
+  final double y1;
 }
