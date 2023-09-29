@@ -98,6 +98,7 @@ class _LoadingPageState extends State<LoadingPage> {
           statics_list.add([temp_list[i][3].toInt(), 1,
             (temp_list[i][0]*650+temp_list[i][1]*160+temp_list[i][2]*1100).toInt()]);
         }
+        print(statics_list);
       }
     }
     var key_list = load_events.keys.toList();

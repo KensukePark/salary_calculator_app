@@ -16,20 +16,18 @@ class _StaticPageState extends State<StaticPage> {
   var f = NumberFormat('###,###,###,###');
   int _currentIndex = 1;
   List<ChartData> data = [];
-  late TooltipBehavior _tooltip;
 
   @override
   void initState() {
     for (int i=0; i<widget.static_list.length; i++) {
       data.add(
         ChartData(
-          widget.static_list[widget.static_list.length-1-i][0].toString().substring(0,4) + '년 ' + widget.static_list[widget.static_list.length-1-i][0].toString().substring(5) + '월',
+          widget.static_list[widget.static_list.length-1-i][0].toString().substring(0,4) + '년 ' + widget.static_list[widget.static_list.length-1-i][0].toString().substring(4) + '월',
           widget.static_list[widget.static_list.length-1-i][1].toDouble(),
           widget.static_list[widget.static_list.length-1-i][2] + widget.static_list[widget.static_list.length-1-i][1]*776.toDouble(),
         )
       );
     }
-    _tooltip = TooltipBehavior(enable: true);
     dummyData1 = List.generate(widget.static_list.length, (index) {
       return FlSpot(index.toDouble()+1, widget.static_list[widget.static_list.length-1-index][2] + widget.static_list[widget.static_list.length-1-index][1]*776.toDouble());
     });
@@ -75,28 +73,37 @@ class _StaticPageState extends State<StaticPage> {
                       ),
                       child: Stack(
                         children: [
+                          /*
                           SfCartesianChart(
-                              primaryXAxis: CategoryAxis(),
-                              primaryYAxis: NumericAxis(
-                                minimum: 0, maximum: 30, interval: 10,isVisible: false,
+                            primaryXAxis: CategoryAxis(),
+                            primaryYAxis: NumericAxis(
+                              minimum: 0, maximum: 250000, interval: 50000,isVisible: false,
+                            ),
+                            tooltipBehavior: TooltipBehavior(
+                              enable: true,
+                              header: '',
+                            ),
+                            series: <ChartSeries<ChartData, String>>[
+                              ColumnSeries<ChartData, String>(
+                                width: 0.25,
+                                dataSource: data,
+                                xValueMapper: (ChartData data, _) => data.x,
+                                yValueMapper: (ChartData data, _) => data.y1,
+                                color: Color.fromRGBO(8, 142, 255, 1)
                               ),
-                              tooltipBehavior: _tooltip,
-                              series: <ChartSeries<ChartData, String>>[
-                                ColumnSeries<ChartData, String>(
-                                  width: 0.25,
-                                  dataSource: data,
-                                  xValueMapper: (ChartData data, _) => data.x,
-                                  yValueMapper: (ChartData data, _) => data.y,
-                                  name: '출근일(日)',
-                                  color: Color.fromRGBO(8, 142, 255, 1)),
-                              ]
+                            ]
                           ),
+
+                           */
                           SfCartesianChart(
                               primaryXAxis: CategoryAxis(),
                               primaryYAxis: NumericAxis(
-                                minimum: 0, maximum: 250000, interval: 50000 ,isVisible: false,
+                                minimum: 0, maximum: 200000, interval: 50000 ,isVisible: false,
                               ),
-                              tooltipBehavior: _tooltip,
+                              tooltipBehavior: TooltipBehavior(
+                                enable: true,
+                                header: '',
+                              ),
                               series: <ChartSeries<ChartData, String>>[
                                 LineSeries<ChartData, String>(
                                   markerSettings: MarkerSettings(
@@ -105,10 +112,12 @@ class _StaticPageState extends State<StaticPage> {
                                   dataSource: data,
                                   xValueMapper: (ChartData data, _) => data.x,
                                   yValueMapper: (ChartData data, _) => data.y1,
-                                  name: '월급(円)',
+                                  name: '월급',
+                                  //enableTooltip : => 점 클릭했을때
                                   color: Color.fromRGBO(255, 142, 140, 1)),
                               ]
                           ),
+
                         ],
                       ),
                     )
@@ -134,33 +143,35 @@ class _StaticPageState extends State<StaticPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                widget.static_list[index][0].toString().substring(0,4) + '년 ' + widget.static_list[index][0].toString().substring(5) + '월',
+                                widget.static_list[index][0].toString()[4] == '0' ?
+                                widget.static_list[index][0].toString().substring(0,4) + '년 ' + widget.static_list[index][0].toString().substring(5) + '월' :
+                                widget.static_list[index][0].toString().substring(0,4) + '년 ' + widget.static_list[index][0].toString().substring(4) + '월',
                                 style: TextStyle(
                                   fontSize: 20,
                                 ),
                               ),
                               SizedBox(height: 10,),
                               Text(
-                                '출근일 : ' + f.format(widget.static_list[index][1])+ '日',
+                                '출근일 : ' + f.format(widget.static_list[index][1])+ '일',
                                 style: TextStyle(
                                   fontSize: 16,
                                 ),
                               ),
                               Text(
-                                '월급 : ' + f.format(widget.static_list[index][2])+ '円',
+                                '월급 : ' + f.format(widget.static_list[index][2])+ '엔',
                                 style: TextStyle(
                                   fontSize: 16,
                                 ),
                               ),
                               Text(
-                                '교통비 : ' + f.format(widget.static_list[index][1]*776)+ '円',
+                                '교통비 : ' + f.format(widget.static_list[index][1]*776)+ '엔',
                                 style: TextStyle(
                                   fontSize: 16,
                                 ),
                               ),
                               SizedBox(height: 10,),
                               Text(
-                                '합계 : ' + f.format(widget.static_list[index][2] + widget.static_list[index][1]*776)+ '円',
+                                '합계 : ' + f.format(widget.static_list[index][2] + widget.static_list[index][1]*776)+ '엔',
                                 style: TextStyle(
                                   fontSize: 16,
                                 ),

@@ -125,9 +125,9 @@ class _HomePageState extends State<HomePage> {
                             Map<String, dynamic> temp_events = json.decode(decode_event!);
                             String utc_year = year.toString();
                             String utc_month = month.toString();
-                            utc_month.length == 1 ? utc_month = '0' + utc_month : null;
+                            utc_month.length == 1 ? utc_month = '0' + utc_month : utc_month = month.toString();
                             String utc_day = day.toString();
-                            utc_day.length == 1 ? utc_day = '0' + utc_day : null;
+                            utc_day.length == 1 ? utc_day = '0' + utc_day : utc_day = day.toString();
 
                             String utc_temp = utc_year+utc_month+utc_day;
                             String utc_idx = utc_year+utc_month;
@@ -508,11 +508,12 @@ class _HomePageState extends State<HomePage> {
                               num_large == -65535 ? '' : (num_large != 0 && num_small % 1 == 0) ? '간단하게 청소한 방 수 : ${num_small.toInt()}' : '풀로 청소한 방 수 : ${num_small}',
                               style: TextStyle(
                                 fontSize: 18,
+
                               ),
                             ),
                             SizedBox(height: 20,),
                             Text(
-                              num_large == -65535 ? '' : '일급 : ' + f.format(num_large * 650 + num_small * 160) + '円',
+                              num_large == -65535 ? '' : '일급 : ' + f.format(num_large * 650 + num_small * 160) + '엔',
                               style: TextStyle(
                                 fontSize: 18,
                               ),
@@ -534,7 +535,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                           SizedBox(height: 20,),
                           Text(
-                            '일급 : ' + f.format(money) + '円',
+                            '일급 : ' + f.format(money) + '엔',
                             style: TextStyle(
                               fontSize: 18,
                             ),
